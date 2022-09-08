@@ -2,9 +2,7 @@
 
 # Design patterns e Frameworks
 
-## Context
-
-First of all, what is a pattern? Recurrent solutions for recurrent problems
+First of all, what is a pattern? Recurrent solutions for recurrent problems. Good, generic, elegant, simple solutions.
 
 ### Object oriented programming
 
