@@ -1,0 +1,109 @@
+
+
+dados + comportamento
+
+const int typeAdmin = 0;
+const int typeGuest = 1;
+const int typeCustomer = 2;
+
+[
+    us0,
+    us1,
+    us2,
+    us3,
+]
+
+// dados
+user.cpp
+struct user {
+    int id;
+    char[] name;
+    int type;
+    int role;
+    int permission;
+    *add;
+}
+
+//comportamento
+function add(*user us) {};
+
+function delete(*user us) {};
+
+function adminLogin(*user us) {
+
+}
+function guestLogin(*user us) {
+
+}
+function customerLogin(*user us) {
+
+}
+
+function genericLogin(*user us) {
+    if (typeAdmin) {
+
+    }
+    else if (typeCustomer) {
+
+    }
+    else if (typeGuest) {
+
+    }
+}
+
+function login(request req) {
+    *user us = userFrom(req)
+    us.login()
+
+    int type = getUserType(req)
+    if (guest) {
+        return guestLogin()
+    }
+    if (admin) {
+        return adminLogin()
+    }
+    if (customer) {
+        return customerLogin()
+    }
+}
+
+
+function main(*args) {}
+
+========================
+
+//"comportamento + dados == O.O.P."
+
+type admin {
+    int id;
+    string name;
+    add();
+    delete();
+}
+
+// Abstraction, Polymorphism, Encapsulation and Inheritance
+// reuso, expressividade, manutenção, facil adicionar coisas
+
+admin ~ guest ~ customer ~ batatinha ~ <user>
+// erlang "se vc nao sabe o que chega pra vc, vc nao
+// deveria interceptar"
+
+
+// abstração pra reuso // type
+user us = userFrom(req) //batatinha
+delete(us)
+create(us)
+
+admin.login() ~ user.login() ~ guest.login() ~ customer.login()
+
+user = admin
+user = guest
+user = customer
+user.login() 
+
+// herança
+admin <-- user
+
+// poli - morfismo
+
+liskov => L (SOLID)
