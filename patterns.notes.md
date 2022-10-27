@@ -310,15 +310,396 @@ public interface Reservation {
 public Float custas(Imovel imovel, List<Person> interessados) {
     //.. dezenas de linhas aqui
 
-    //factory talvez que crie baseado na cidade
+    //factory talvez crie baseado na cidade
     impostos.calc(imovel)
 
     //..dezenas de linhas aqui
 
     // reserva de recursos
-    //factory talvez que crie baseado na cidade
+    //factory talvez crie baseado na cidade
     reservation.calc(imovel)
 
     //.. dezenas de linhas aqui
 }
+```
+
+*Template method* e *Strategy* para promover reuso de partes do seu codigo.
+Precisam de abstracao para gerar polimofismo.
+
+classe {
+    metodo {
+        linha 1: reuso
+        linha 2: reuso
+        linha 3: reuso
+        
+        linha 4: especifico / delega
+        // geralmente um bloco com varios IFs e ELSEs
+        // cada condicao do IF / ELSE vira uma classe ou um strategy
+        // invoca metodo abstrato
+
+        linha 5: reuso
+        linha 6: reuso
+        linha 7: reuso
+
+        linha 8: especifica / delega
+        // geralmente um bloco com varios IFs e ELSEs
+        // cada condicao do IF / ELSE vira uma classe ou um strategy
+        // invoca metodo abstrato
+
+        linha 9: reuso
+        linha 10: reuso
+        linha 11: reuso
+    }
+}
+
+
+# Decorator
+
+classe {
+    metodo {
+        linha 1: reuso
+        linha 2: reuso
+        linha 3: reuso
+        
+        linha 4: especifico / delega
+        // geralmente um bloco com varios IFs e ELSEs
+        // cada condicao do IF / ELSE vira uma classe ou um strategy
+        // invoca metodo abstrato
+    }
+}
+
+classe {
+    metodo {
+
+        linha 1: especifico / delega
+        // geralmente um bloco com varios IFs e ELSEs
+        // cada condicao do IF / ELSE vira uma classe ou um strategy
+        // invoca metodo abstrato
+
+        linha 2: reuso
+        linha 3: reuso
+        linha 4: reuso
+    }
+}
+
+```java
+
+class Pedido {
+
+    loat valorTotalDoPedido(Customer customer, List<Item> items, Cupom desconto) {
+        Float total = sum(items);
+        if (!customer.isParceiro()) {
+            total += frete(items);
+        }
+        if (desconto != null) {
+            total = desconto.apply(total);
+        }
+        // feature adicionada depois
+        // viola nosso OPEN CLOSED
+        if (clientePossuiImpostoAdicional(customer) != null) {
+            total = impostoAdicional.apply(total);
+        }
+        return total;
+    }
+
+}
+```
+
+```java
+
+interface Pedido {
+    loat valorTotalDoPedido(Customer customer, List<Item> items, Cupom desconto);
+}
+
+class PedidoSimples implements Pedido {
+
+    float valorTotalDoPedido(Customer customer, List<Item> items, Cupom desconto) {
+        return sum(items);
+    }
+
+}
+
+class PedidoComFrete implements Pedido {
+
+    Pedido delegate;
+
+    loat valorTotalDoPedido(Customer customer, List<Item> items, Cupom desconto) {
+        return delegate.valorTotalDoPedido(customer, items, desconto) + frete(items);
+    }
+
+}
+
+class PedidoComDesconto implements Pedido {
+
+    Pedido delegate;
+
+    loat valorTotalDoPedido(Customer customer, List<Item> items, Cupom desconto) {
+        return desconto.apply(delegate.valorTotalDoPedido(customer, items, desconto))
+    }
+
+}
+
+class PedidoComImpostoAdicional implements Pedido {
+
+    Pedido delegate;
+
+    loat valorTotalDoPedido(Customer customer, List<Item> items, Cupom desconto) {
+        return impostoAdicional.apply(delegate.valorTotalDoPedido(customer, items, desconto))
+    }
+
+}
+
+// usage
+Pedido meuPedido = new PedidoComFrete(new PedidoSimples(/** */)); // pedido sem parceria sem desconto
+Pedido meuPedido = new PedidoSimples(/** */); // pedido com parceria sem desconto
+Pedido meuPedido = new PedidoComDesconto(new PedidoComFrete(new PedidoSimples(/** */)));
+Pedido meuPedido = new PedidoComFrete(new PedidoComDesconto(new PedidoSimples(/** */)));
+
+// factory
+// factory para criacao das camadas de chamada do decorator
+Pedido create(Customer customer, Cupom desconto) {
+    Pedido pedido = new PedidoSimples(/** */);
+    if (!customer.isParceiro()) {
+        pedido = new PedidoComFrete(pedido);
+    }
+    if (desconto != null) {
+        pedido = new PedidoComDesconto(pedido);
+    }
+    if (clientePossuiImpostoAdicional(customer) != null) {
+        pedido = new PedidoComImpostoAdicional(pedido);
+    }
+    return pedido;
+}
+
+```
+
+pedido de cliente parceiro com desconto
+
+pedido de cliente parceiro com desconto
+
+pedido de cliente não parceiro sem desconto
+
+pedido de cliente não parceiro sem desconto
+
+## Decorator vs template method vs strategy
+
+- decorator pra reuso de algoritmo que muda nas pontas;
+- template e strategy reuso de algoritmo com partes intercaladas;
+
+# Adapter (wrapper)
+
+- decorator é um padrão de longa duração
+- adapter é short lived
+- durante refactories ou mudanças de versões de codigo pra gerar retrocompatibilidade
+
+```java
+class Login {
+    // v1
+    boolean login(username, password) {
+        // so tenho um grupo de usuarios (admin)
+        // varias linhas de codigo da v1
+    }
+}
+
+// v2
+// que possui multiplos grupos de usuarios
+class LoginV2 {
+    // v2
+    boolean login(username, password, healm) {
+        // so tenho um grupo de usuarios (admin, guests, owners)
+        // varias linhas de codigo da v1
+    }
+}
+
+// a v2 se passa pela v1
+class Loginv2Adapter extends Login {
+
+    LoginV2 delegateLoginV2 = new LoginV2();
+
+    // temporario
+    boolean login(username, password) {
+        return delegateLoginV2.login(username, password, 'admin')
+    }
+
+}
+
+// usage
+// ja comecei a usar a v2 com codigo que so funcionaria com a v1
+Login loginv1 = new Loginv2Adapter();
+
+// refactoring todo o sistema
+// a v1 se passa pela v2
+class Loginv1Adapter extends LoginV2 {
+
+    Login delegateLoginV1 = new Login();
+
+    // temporario
+    boolean login(username, password, healm) {
+        return delegateLoginV1.login(username, password)
+    }
+
+}
+
+// feature flags
+// liga v2 para 10% dos usuarios
+
+interface Login {
+    boolean login(username, password)
+}
+
+// v1
+class LoginRedis implements Login {
+    boolean login(username, password) {
+        // bate no redis pra logar
+    }
+}
+
+// v2
+class LoginGoogle implements Login {
+    
+    boolean login(username, password) {
+        // login com usuario no google
+    }
+}
+
+// 10% de usuarios vao pra login v2
+class LoginFF implements Login {
+
+    private float DEZ_PORCENTO = 0.10
+
+    private float ZERO = 0
+
+    // temporario
+    boolean login(username, password) {
+        if (random() < DEZ_PORCENTO) { // 10% primeira semana, 20% 2a semana, ... 100% na v2
+            return new LoginGoogle(user, password);
+        }
+        return new LoginRedis(use, password);
+    }
+
+}
+
+
+// usage
+// v1
+Login login = new LoginRedis().login(username, password)
+// ff
+Login login = new LoginFF().login(username, password)
+//depois de 100%
+//
+Login login = new LoginGoogle().login(username, password)
+
+```
+
+proxy vs decorator vs adapter
+
+- todos os tres tem um delegate la dentro
+
+- adapter - retrocompatibilidade
+- decorator - compor ( de composição) comportamento e substituir IFs / Elses gerando reuso
+- proxy - lazy loading
+
+# Proxy
+
+- ORM (ferramentas que mapeiam objetos para banco relacional)
+
+```java
+class User {
+    Long id;
+    String name;
+    String nasc;
+    list<Login> logins; // lazy - no loading vc recebe uma lista de mentira
+}
+
+class LoginsProxy extends List<Login> {
+
+    List<Login> delegate = null;
+
+    @override
+    Login get(int pos) {
+        if (delegate == null) {
+            delegate = carregaAsEntradasDeVerdade();
+        }
+        return delegate.get(pos);
+    }
+
+}
+```
+
+# Observer  - event listeners / pubsub  - mensageria / event driven
+
+- alguem esta notificando as mudancas e alguem esta ouvindo as mudancas;
+- desacoplar partes do codigo // fazer isso demais gera problema
+
+```java
+// enviando mensagem
+
+// possivelmente sera chamado num repositorio
+user.save()
+EventBus.getInstance().sendMessage('new-user-created', user);
+// update da tela?
+// auditoria?
+
+
+EventBus.getInstance().sendMessage('config-reloaded', config);
+
+// registra  a home como ouvinte de eventos de criacao de usuarios
+HomePage home = new HomePage()
+EventBus.getInstance().register('new-user-created', home)
+
+// registro audit trail escuta eventos de criacao de usuarios
+AuditTrail audit = new AuditTrail()
+EventBus.getInstance().register('new-user-created', audit)
+
+
+interface Listener<User> {
+    notify(User us);
+}
+
+// eh uma tela
+class HomePage implements Listener<User> {
+    notify(User us) {
+        popup(us)
+    }
+    //
+}
+
+
+// eh um servico de auditoria
+class AuditTrail implements Listener<User> {
+    notify(User us) {
+        log(us)
+    }
+    //
+}
+
+// mesma coisa com o mouse listener que ja conversamos
+MouseListener {
+
+}
+
+// codigo do barramento para created user only
+class EventBus<User> {
+    EventBus instance = null;
+
+    public static EventBus getInstance() {
+        if (instance == null) {
+            instance = new EventBus()
+        }
+        return instance;
+    }
+
+    Map<String, List<Listener<User>>> listeners = new List<>();
+
+    void register(String action, Listener<User> listener) {
+        this.listeners.get(action).add(listener);
+    }
+
+    void sendMessage(String action, User event) {
+        for (Listener l : this.listeners.get(action)) {
+            l.notify(event);
+        }
+    }
+}
+
 ```
