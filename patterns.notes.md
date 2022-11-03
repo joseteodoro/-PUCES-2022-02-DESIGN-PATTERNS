@@ -703,3 +703,154 @@ class EventBus<User> {
 }
 
 ```
+
+# Composite
+
+- Esse pattern força a estrutura de código
+
+- raiz (objeto)
+  --- filho 1 (objeto)
+     ---- neto 1 (objeto)
+     ---- neto 2 (objeto)
+
+  --- filho 2 (objeto)
+
+```java
+class Observer {
+    List<Listener> listeners;
+
+    // itera os itens pra enviar notificao (return void)
+}
+
+// likely
+
+class Noh {
+    List<Noh> filhos;
+
+    // itera os itens, pra acessar valor ou comportamento
+}
+
+// mas o composite é uma arvore
+
+Noh gerente = new Noh('CTO')
+gerente.add(new Noh('superintendente'))
+...
+...
+...
+techlead.add(new Noh('dev'))
+
+```
+
+- Linguagens compiladas usam uma estrutura em composite para carregar XML;
+- utiliza algoritmos conhecidos para percorrer grafos;
+
+### Composite vs Observer
+ - composite te força organizar seus objetos de maneira hierarquica;
+ - observer noticar eventos;
+ - ambos percorrem as listas de items;
+
+### Composite vs decorator
+ - decorator é sempre sobre comportamento, com reuso como objetivo final
+ - composite tem comportamento e dados; Forçar uma hierarquia; Com objetivo de usar algoritmos conhecidos para percorrer os itens;
+
+
+# Iterator / Generator
+
+
+## Iterator
+
+- trata-se apenas de iterar sobre os itens da lista;
+
+```java
+   // old fashion C like for
+   List<FileContent> files = listFiles(); 
+   for (int i = 0; i < list.size(); i++) {
+      FileContent content = IOUtils.readFile(files.get(i));
+      pushToFTPServer(content);
+   }
+
+   // forEach
+   // iterators = list
+   iterator.hasNext()
+   iterator.next()
+   while (iterator.hasNext()) {
+
+   }
+```
+
+## Generator
+ - nao falamos apenas de iterar os itens da lista;
+ - a lista consuma pouca memoria, mas o conteudo possa ser carregado por demanda;
+ - backpressure - pressão reversa
+ - seguro para se usar com concorrencia
+
+```
+Generator gen = new Generator(listFiles)
+String ContudoDoArquivo = gen.next().value
+```
+
+```
+Generator gen = uuid({seed: 1})
+gen.next() -> 1;
+
+Generator gen = uuid({seed: 1})
+gen.next() -> 1;
+```
+
+// criamos um jogo online, compartilhando o menor trecho de memoria 
+possivel entre os players. Mas todos recebem os mesmo montros.
+// distribuir apenas a seed para os generators
+
+
+```python
+activeUsers = ([x.name for x in users])
+```
+
+```js
+users.map(us => us.name)
+
+
+// cria generator
+function* gen(target = []) {
+    let index = 0;
+    
+    while (index < target.length) {
+        yield target[index++]; // cada chamada do generator para aqui
+    }
+}
+
+const generator = gen();
+gen().next().value // retorna proximo valor
+
+```
+
+
+# Command
+ - {action: '', parameters: []}
+
+```sh
+> GET /banana HTTP/1.1
+> Host: google.com.br
+
+{
+    action: 'GET',
+    params: ['/banana', 'HTTP/1.1']
+}
+```
+
+```js
+[
+    {user: 'jose', action: 'update', params: 'userId: 1; update de active para inativo;'}
+]
+```
+
+// event-driven-design
+
+[
+    {error},
+    {id: 2, quantity: 1, price: 1.2},
+    {id: 25, quantity: 10, price: 1.2},
+    {id: 1023, quantity: 10, price: 0.3}
+]
+
+// trazer exemplo rodando o saga

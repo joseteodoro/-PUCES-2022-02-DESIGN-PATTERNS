@@ -1537,6 +1537,139 @@ Supplier<String> complex = Collections.reverse(tags)
 - Composite: **organize data / behavior** like a tree.
    - long lived
 
+## Behavioral Patterns / Iterator | what about Generator? |
+
+- Lets you traverse elements of a collection without exposing its underlying
+representation (list, stack, tree, etc.);
+
+** Almost all modern languages has `foreach` and that loop already solve the
+same problemas that iterator does;
+
+## Usage (Iterator)
+
+- Use the pattern to reduce duplication of the traversal code across your app;
+
+```java
+   // old fashion C like for
+   List<FileContent> files = listFiles(); 
+   for (int i = 0; i < list.size(); i++) {
+      FileContent content = files.get(i);
+      pushToFTPServer(content);
+   }
+
+   // using iterator
+   List<FileContent> files = listFiles();
+   Iterator<FileContent> it = files.iterator();
+   while (it.hasNext()) {
+      FileContent content = it.next();
+      pushToFTPServer(content);
+   }
+
+   // using foreach
+   List<FileContent> files = listFiles(); 
+   for (FileContent content : files) {
+      pushToFTPServer(content);
+   }
+
+   // using streams
+   listFiles()
+      .stream()
+      .map(pushToFTPServer); 
+
+```
+
+## Usage (Generator)
+
+- provide values on demand without load everything on memory;
+
+using `yield` if you language supports that!
+
+```javascript
+   function* generator() {
+      yield 1; // first call stops here
+      yield 2; // second call stops here
+      yield 3; // third call stops here
+      // end of generator (no more items)
+   }
+
+   const gen = generator(); // "Generator { }"
+
+   console.log(gen.next().value); // 1
+   console.log(gen.next().value); // 2
+   console.log(gen.next().value); // 3
+``` 
+
+```javascript
+   function* infinite() {
+      let index = 0;
+
+      while (true) {
+         yield index++; // each call stops here and return the index value before its increment!
+      }
+   }
+
+   const generator = infinite(); // "Generator { }"
+
+   console.log(generator.next().value); // 0
+   console.log(generator.next().value); // 1
+   console.log(generator.next().value); // 2
+```
+
+so what?
+
+```javascript
+   function* listAllUsers(limit = 100) {
+      const { userCount } = db.findOne('select count(1) as userCount from users;');
+      const page = 0;
+      const maxPage = userCount / limit;
+
+      while (page < maxPage) {
+         yield db.findMany(`select * as userCount from users limit ${limit} offset ${page*limit};`); // stops here
+         page++; // run only on next iteration
+      }
+   }
+
+   const gen = listAllUsers(1); // "Generator { }"
+
+   console.log(gen.next().value); // {id: 1, name: 'b1', email: 'b1@pijamas.com'}
+   console.log(gen.next().value); // {id: 2, name: 'b2', email: 'b2@pijamas.com'}
+   console.log(gen.next().value); // {id: 3, name: 'batata', email: 'b1@potatoes.com'}
+   // you can call until the end of the items or use it on a forEach
+```
+
+what about when there are no `yield` operator, like java?
+
+```java
+// note that every jdbc implementation is blocking
+private Supplier<List<User>> generator(int limit) {
+   int page = 0;
+   // each call from stream will fire a request for the query
+   return () -> {
+      ResultSet rs = conn.execute(String.join(" ",
+         "select count(1) as userCount from users",
+         "limit",
+         String.valueOf(limit),
+         "page"
+         String.valueOf(page++),
+         ";"
+      );
+      return User.from(rs);
+   }
+}
+
+public Stream<List<User>> listAllUsers(int limit) {
+   Integer userCount = conn.execute('select count(1) as userCount from users;').next().get(0);
+   // Integer[] possibleCalls = new Integer[userCount / limit];
+   return Stream.generate(generator(limit));
+}
+
+// usage
+listAllUsers(10)
+   .map(users -> users.size())
+   .forEach(System.out::println);
+```
+
+
 ## Creational Patterns / Builder
 
 - lets you construct complex objects step by step. The pattern allows
@@ -1950,137 +2083,6 @@ layer between senders and receivers;
 
 - The code become quite flexibe with all the flexibility's problems;
 
-## Behavioral Patterns / Iterator | what about Generator? |
-
-- Lets you traverse elements of a collection without exposing its underlying
-representation (list, stack, tree, etc.);
-
-** Almost all modern languages has `foreach` and that loop already solve the
-same problemas that iterator does;
-
-## Usage (Iterator)
-
-- Use the pattern to reduce duplication of the traversal code across your app;
-
-```java
-   // old fashion C like for
-   List<FileContent> files = listFiles(); 
-   for (int i = 0; i < list.size(); i++) {
-      FileContent content = files.get(i);
-      pushToFTPServer(content);
-   }
-
-   // using iterator
-   List<FileContent> files = listFiles();
-   Iterator<FileContent> it = files.iterator();
-   while (it.hasNext()) {
-      FileContent content = it.next();
-      pushToFTPServer(content);
-   }
-
-   // using foreach
-   List<FileContent> files = listFiles(); 
-   for (FileContent content : files) {
-      pushToFTPServer(content);
-   }
-
-   // using streams
-   listFiles()
-      .stream()
-      .map(pushToFTPServer); 
-
-```
-
-## Usage (Generator)
-
-- provide values on demand without load everything on memory;
-
-using `yield` if you language supports that!
-
-```javascript
-   function* generator() {
-      yield 1; // first call stops here
-      yield 2; // second call stops here
-      yield 3; // third call stops here
-      // end of generator (no more items)
-   }
-
-   const gen = generator(); // "Generator { }"
-
-   console.log(gen.next().value); // 1
-   console.log(gen.next().value); // 2
-   console.log(gen.next().value); // 3
-``` 
-
-```javascript
-   function* infinite() {
-      let index = 0;
-
-      while (true) {
-         yield index++; // each call stops here and return the index value before its increment!
-      }
-   }
-
-   const generator = infinite(); // "Generator { }"
-
-   console.log(generator.next().value); // 0
-   console.log(generator.next().value); // 1
-   console.log(generator.next().value); // 2
-```
-
-so what?
-
-```javascript
-   function* listAllUsers(limit = 100) {
-      const { userCount } = db.findOne('select count(1) as userCount from users;');
-      const page = 0;
-      const maxPage = userCount / limit;
-
-      while (page < maxPage) {
-         yield db.findMany(`select * as userCount from users limit ${limit} offset ${page*limit};`); // stops here
-         page++; // run only on next iteration
-      }
-   }
-
-   const gen = listAllUsers(1); // "Generator { }"
-
-   console.log(gen.next().value); // {id: 1, name: 'b1', email: 'b1@pijamas.com'}
-   console.log(gen.next().value); // {id: 2, name: 'b2', email: 'b2@pijamas.com'}
-   console.log(gen.next().value); // {id: 3, name: 'batata', email: 'b1@potatoes.com'}
-   // you can call until the end of the items or use it on a forEach
-```
-
-what about when there are no `yield` operator, like java?
-
-```java
-// note that every jdbc implementation is blocking
-private Supplier<List<User>> generator(int limit) {
-   int page = 0;
-   // each call from stream will fire a request for the query
-   return () -> {
-      ResultSet rs = conn.execute(String.join(" ",
-         "select count(1) as userCount from users",
-         "limit",
-         String.valueOf(limit),
-         "page"
-         String.valueOf(page++),
-         ";"
-      );
-      return User.from(rs);
-   }
-}
-
-public Stream<List<User>> listAllUsers(int limit) {
-   Integer userCount = conn.execute('select count(1) as userCount from users;').next().get(0);
-   // Integer[] possibleCalls = new Integer[userCount / limit];
-   return Stream.generate(generator(limit));
-}
-
-// usage
-listAllUsers(10)
-   .map(users -> users.size())
-   .forEach(System.out::println);
-```
 
 ## Creational Patterns / Dependency injection
 
