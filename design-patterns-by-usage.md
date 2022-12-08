@@ -1980,6 +1980,7 @@ of all those commands;
 ```javascript
 const operations = [
    {user: 1, action: 'deposit', value: 100.0, createdA: 1622139300108},
+   {user: 1, action: 'debit', value: 100.0, createdA: 1622139300108},
    {user: 34, action: 'deposit', value: 10000.0, createdA: 1622139300108},
    {user: 63, action: 'deposit', value: 120.0, createdA: 1622139300108},
    {user: 34, action: 'withdraw', value: 130.0, createdA: 1622139300108},
@@ -1990,6 +1991,7 @@ const operations = [
    {user: 60, action: 'deposit', value: 5.0, createdA: 1622139300108},
    {user: 34, action: 'deposit', value: 12.0, createdA: 1622139300108},
    {user: 1, action: 'withdraw', value: 150.0, createdA: 1622139300108}
+   {user: 1, action: 'snapshot', value: 50.0, createdA: 1622139300108}
 ]
 
 // we try to process and got an error!

@@ -844,7 +844,7 @@ gen().next().value // retorna proximo valor
 ]
 ```
 
-// event-driven-design
+// event-driven-design | event sourcing design
 
 [
     {error},
@@ -854,3 +854,141 @@ gen().next().value // retorna proximo valor
 ]
 
 // trazer exemplo rodando o saga
+
+event-driven design
+vs
+event sourcing desing
+
+// reuso de recurso Object pool, Flyweight, Prototype
+# Object pool
+
+- objeto custoso em tempo de carga ou escasso;
+- na subida da aplicacao, carregamos varios e deixamos ociosos aguardadndo uso;
+- configs
+    ```json
+    {
+        max: 10,
+        min: 2,
+        ttl: 300 sec,
+    }
+    ```
+
+
+# Flyweight
+- objeto custoso em tempo de carga;
+
+```js
+const repo = {
+    // somente leitura
+    logoEmpresa: PNG('200MB');
+}
+// problema do singleton, seguro para concorrencia
+// tal como singleton dá pra fazer carga por demanda,
+// tal como singleton dá pra fazer syncronized
+// 
+const userJose = {
+    logoEmpresa: repo.logoEmpresa;
+}
+const userCarlos = {
+    logoEmpresa: repo.logoEmpresa;
+}
+const NF = {
+    logoEmpresa: repo.logoEmpresa;
+}
+```
+
+# Prototype
+- objeto custoso em tempo de carga;
+- sempre do mesmo tipo que a gente clona;
+  
+```js
+const userEmpresaX = {
+    // somente leitura
+    logoEmpresa: PNG('200MB');
+}
+// problema do singleton, seguro para concorrencia
+// tal como singleton dá pra fazer carga por demanda,
+// tal como singleton dá pra fazer syncronized
+// 
+
+// readonly reusa
+const userJoseEmpresaX = userEmpresaX.clone()
+userJoseEmpresaX.name = 'josé'
+
+// readonly reusa
+const userCarlosEmpresaX = userEmpresaX.clone()
+userCarlosEmpresaX.name = 'Carlos'
+
+// read/write copy on write
+const userCarlaEmpresaX = userEmpresaX.clone()
+userCarlaEmpresaX.name = 'Carla'
+userCarlaEmpresaX.logoEmpresa = grayScale(userCarlaEmpresaX.logoEmpresa)
+
+// prototype -> PNG poderia ser read/write
+```
+
+```java
+class X {
+
+    Object clone() {
+
+    }
+}
+```
+
+```js
+
+// considerando que esses caras nao sao seguros pra concorrencia
+const user = new admin();
+const user = new guest();
+const user = new customer();
+
+//
+
+// mas vc souber que a funcao que vc vai usar o user é somente leitura
+// codigo concorrente usa as copias do user
+// demora 20 segundos pra rodar
+addresses.map( address => address(user.clone()) )
+
+// faz outras mudancas no user
+user.name = 'batata'
+user.address.push('c')
+
+// criamos um closure usando o clone pra garantir concorrencia
+
+// deep copy //funda
+{
+    name: 'jose'(ref1),
+    addresses: ['a'(ref2), 'b'(ref3)],
+}
+// clone
+{
+    name: 'jose'(ref10),
+    addresses: ['a'(ref11), 'b'(ref15)],
+}
+clone.address.push('c')
+// afeta apenas o clone
+
+// shalow copy // rasa
+{
+    name: 'jose'(ref1),
+    addresses: ['a'(ref2), 'b'(ref3)](ref5),
+}
+// clone
+{
+    name: 'jose'(ref10),
+    addresses: ['a'(ref2), 'b'(ref3)](ref5),
+}
+clone.push('c')
+// afeta o original e o clone
+
+```
+## Prototype vs Flyweight vs Object Pool
+
+- prototype: sempre funciona com o mesmo tipo;
+- prototype: pode ser read/write (copy on write);
+- Flyweight: funciona quaiquer tipos que precisem reusar o recurso;
+- Flyweight: readonly;
+- prototype e Flyweight: deixam vc usar o recurso ao mesmo tempo;
+- Object Pool: controla o acesso simultaneo. Pq a ideia é gerenciar recursos escassos ou finitos; Reusar o mesmo recurso que esta em memoria, mas cada um usa na sua vez;
+- 
