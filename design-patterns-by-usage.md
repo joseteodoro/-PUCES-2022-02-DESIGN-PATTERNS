@@ -2155,162 +2155,6 @@ public class UserService {
 
 - who has the control? Can be hard to understand bugs;
 
-## Structural Patterns / Bridge
-
-- Specification Program Interface e Application Program Interface;
-
-- lets you split a large class or a set of closely related classes into two separate hierarchies—abstraction and implementation which can be developed independently of each other;
-
-- Related with encapsulation and abstractions;
-
-- Related with polymorphism;
-
-### Usage
-
-- Use the Bridge pattern when you want to divide and organize a monolithic class that has several variants of some functionality (for example, if the class can work with various database servers)
-
-- Use the Bridge if you need to be able to switch implementations at runtime
-
-- Defines a specification (set of interfaces / basic implementations) to be implemented for some providers
-
-- Works great with DI
-
-```
-            -> Postgres
-JDBC SPI :  -> MySQL
-            -> Oracle
-
-```
-
-
-```java
-// SPI
-public interface Connection {
-   ResultSet execute(String sql, Map<String, Object> params);
-}
-
-public interface Driver {
-   Connection connect(String connectionString);
-}
-
-public abstract class ResultSet {
-   
-   public Boolean hasNext() {
-      //...
-   };
-
-   public abstract Boolean Next();
-
-   public abstract Boolean getString(Integer position);
-
-   public abstract Boolean getString(String field);
-
-   ///...
-}
-
-```
-
-```java
-// API oracle (another library / jar file)
-public class OracleResultSet extends ResultSet {
-   // ...
-}
-
-public class OracleConnection implements Connection {
-   OracleResultSet execute(String sql, Map<String, Object> params) {}
-}
-
-public class OracleDriver implements Driver {
-   OracleConnection connect(String connectionString) {}
-}
-
-```
-
-```java
-// API postgres (another library / jar file)
-public class PostgreSQLResultSet extends ResultSet {
-   // ...
-}
-
-public class PostgreSQLConnection implements Connection {
-   PostgreSQLResultSet execute(String sql, Map<String, Object> params) {}
-}
-
-public class PostgreSQLDriver implements Driver {
-   PostgreSQLConnection connect(String connectionString) {}
-}
-```
-
-- Looks like template method, but it's  more than that!
-
-- Related with polimorphism;
-
-- Related with abstraction;
-
-- Related with encapsulation;
-
-- Related with SRP on library level;
-
-### Cons
-
-- You might make the code more complicated by applying the pattern to a highly cohesive class;
-
-- high coupled artifacts (SPI and API);
-
-- SPI and projects using it should release in sync;
-
-## Structural Patterns / Facade
-
-- hides complexity and internal structure;
-
-- provides a simplified interface to a library, a framework, or any other complex set of classes;
-
-- structures a subsystem into layers;
-
-### Usage
-
-- When you have a lot of classes / artifacts, but want to expose only few for the clients;
-
-- When you want to provide a simpler interface than what an existing subsystem already provides;
-
-- When you want to create a single point of contact with your callers;
-
-```java
-public class CreditFacade {
-
-   public Boolean hasCredit(User user, BigDecimal value) {
-      // hides a lot of calls and dependencies to manage a request
-      // user services
-      // risk management services
-      // credit services
-      // financial services
-   }
-
-}
-
-// client calling the feature
-
-User user = User.from(request.body);
-BigDecimal value = Value.from(request.body);
-Boolean canOrder = CreditFacade.getInstance().hasCredit(user, value);
-```
-
-- When you want to structure your system into layers. You can expose olny facade for any client (developer / external modules);
-
-Directory structure for User module:
-
-```
-├── repositories
-├── controllers
-└── services
-└── UserFacade.java
-```
-
-### Cons
-
-- A facade can become a god object coupled to all classes of an app;
-
-- Be careful to not give more responsabilities than needed (like business logic on facade);
 
 ## Creational Patterns / Object pool
 
@@ -3222,3 +3066,160 @@ that alter how the class behaves according to the current values of the class’
 
 - Applying the pattern can be overkill if a state machine has only a few states
 or rarely changes
+
+## Structural Patterns / Bridge
+
+- Specification Program Interface e Application Program Interface;
+
+- lets you split a large class or a set of closely related classes into two separate hierarchies—abstraction and implementation which can be developed independently of each other;
+
+- Related with encapsulation and abstractions;
+
+- Related with polymorphism;
+
+### Usage
+
+- Use the Bridge pattern when you want to divide and organize a monolithic class that has several variants of some functionality (for example, if the class can work with various database servers)
+
+- Use the Bridge if you need to be able to switch implementations at runtime
+
+- Defines a specification (set of interfaces / basic implementations) to be implemented for some providers
+
+- Works great with DI
+
+```
+            -> Postgres
+JDBC SPI :  -> MySQL
+            -> Oracle
+
+```
+
+
+```java
+// SPI
+public interface Connection {
+   ResultSet execute(String sql, Map<String, Object> params);
+}
+
+public interface Driver {
+   Connection connect(String connectionString);
+}
+
+public abstract class ResultSet {
+   
+   public Boolean hasNext() {
+      //...
+   };
+
+   public abstract Boolean Next();
+
+   public abstract Boolean getString(Integer position);
+
+   public abstract Boolean getString(String field);
+
+   ///...
+}
+
+```
+
+```java
+// API oracle (another library / jar file)
+public class OracleResultSet extends ResultSet {
+   // ...
+}
+
+public class OracleConnection implements Connection {
+   OracleResultSet execute(String sql, Map<String, Object> params) {}
+}
+
+public class OracleDriver implements Driver {
+   OracleConnection connect(String connectionString) {}
+}
+
+```
+
+```java
+// API postgres (another library / jar file)
+public class PostgreSQLResultSet extends ResultSet {
+   // ...
+}
+
+public class PostgreSQLConnection implements Connection {
+   PostgreSQLResultSet execute(String sql, Map<String, Object> params) {}
+}
+
+public class PostgreSQLDriver implements Driver {
+   PostgreSQLConnection connect(String connectionString) {}
+}
+```
+
+- Looks like template method, but it's  more than that!
+
+- Related with polimorphism;
+
+- Related with abstraction;
+
+- Related with encapsulation;
+
+- Related with SRP on library level;
+
+### Cons
+
+- You might make the code more complicated by applying the pattern to a highly cohesive class;
+
+- high coupled artifacts (SPI and API);
+
+- SPI and projects using it should release in sync;
+
+## Structural Patterns / Facade
+
+- hides complexity and internal structure;
+
+- provides a simplified interface to a library, a framework, or any other complex set of classes;
+
+- structures a subsystem into layers;
+
+### Usage
+
+- When you have a lot of classes / artifacts, but want to expose only few for the clients;
+
+- When you want to provide a simpler interface than what an existing subsystem already provides;
+
+- When you want to create a single point of contact with your callers;
+
+```java
+public class CreditFacade {
+
+   public Boolean hasCredit(User user, BigDecimal value) {
+      // hides a lot of calls and dependencies to manage a request
+      // user services
+      // risk management services
+      // credit services
+      // financial services
+   }
+
+}
+
+// client calling the feature
+
+User user = User.from(request.body);
+BigDecimal value = Value.from(request.body);
+Boolean canOrder = CreditFacade.getInstance().hasCredit(user, value);
+```
+
+- When you want to structure your system into layers. You can expose olny facade for any client (developer / external modules);
+
+Directory structure for User module:
+
+```
+├── repositories
+├── controllers
+└── services
+└── UserFacade.java
+```
+
+### Cons
+
+- A facade can become a god object coupled to all classes of an app;
+
+- Be careful to not give more responsabilities than needed (like business logic on facade);

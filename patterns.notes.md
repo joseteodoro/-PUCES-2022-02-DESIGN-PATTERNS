@@ -991,4 +991,131 @@ clone.push('c')
 - Flyweight: readonly;
 - prototype e Flyweight: deixam vc usar o recurso ao mesmo tempo;
 - Object Pool: controla o acesso simultaneo. Pq a ideia é gerenciar recursos escassos ou finitos; Reusar o mesmo recurso que esta em memoria, mas cada um usa na sua vez;
-- 
+
+// abstracao e modularizacao
+# Bridge
+
+formatter {
+    format(object t) {
+        json.toJson(t)
+    }
+}
+
+connectionFactory {
+    connect() {
+
+    }
+}
+
+user {
+    
+    save() {
+        con = this.factory.connect()
+        // de como salvar
+    }   
+}
+
+
+jdbc (conexão de db do java)
+    - um monte de interfaces
+
+```java
+public Connection getConnection() throws SQLException {
+
+    Connection conn = null;
+    Properties connectionProps = new Properties();
+    connectionProps.put("user", this.userName);
+    connectionProps.put("password", this.password);
+
+    if (this.dbms.equals("mysql")) {
+        conn = DriverManager.getConnection(
+                   "jdbc:" + this.dbms + "://" +
+                   this.serverName +
+                   ":" + this.portNumber + "/",
+                   connectionProps);
+    } else if (this.dbms.equals("derby")) {
+        conn = DriverManager.getConnection(
+                   "jdbc:" + this.dbms + ":" +
+                   this.dbName +
+                   ";create=true",
+                   connectionProps);
+    }
+    System.out.println("Connected to database");
+    return conn;
+}
+
+```
+    - codificar pra abstração (SPI)
+    - conjunto de interfaces que definem nosso contrato exposto
+    
+    - no caso do jdbc:
+      - oracle codifica o jdbc da oracle
+      - postgres o jdbc deles
+      - mysql
+
+Connection c = this.connect() // <--- PGConnection()
+
+
+express:
+```js
+    function (req, res, next) {};
+```
+
+jdbc --- oracle
+     --- pg
+     --- mysql
+
+
+
+// exposicao do contrato
+# Facade
+    - tenta facilitar o uso / esconder coisas / escondendo complexidade
+    - user/
+      - facade.js
+      - repository/
+        - userRepository.js
+        - ...
+      - services/
+        - userService.js
+        - ..
+      - formatter/
+        - jsonExporter.js
+        - ..
+
+
+// usage
+facade.createNewUser(username, password)
+facade.createNewUser(username, password, name)
+facade.createNewUser(username, password, cep)
+facade.toJson(user)
+facade.delete()
+facade.updatePassword()
+
+// facade tende a violar o SRP
+// god classes (classes que fazem tudo)
+
+- sem usar o facade, a gente precisa controlar quais classes serao expostas pelo modulo
+  - module.exports = {}
+  - module (2018+)
+  - Capital Letters
+
+
+
+// estados interno de aplicao
+# Memento
+
+    - criar snapshots do estado e ser capaz de voltar no tempo
+      - control + Z
+      - ponto de restauração
+      - backup de db é diferente
+      - memento é sobre estado interno da aplicacao
+      - undo() desfazer()
+      - redo() refazer()
+
+# State
+
+    - install shield (next next next finish)
+    - um unico bloco de codigo
+    - o estado / o que o usuario selecionou / o que o usuario define qual ser ao comportamento;
+    - como é um unico codigo, quantos IFs vc precisa?
+  
